@@ -1,4 +1,4 @@
-module ldat
+module github.com/x0y14/ldat
 
 go 1.18
 
