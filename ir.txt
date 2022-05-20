@@ -1,0 +1,3 @@
+define void @print(string %text) {
+    puts text
+}

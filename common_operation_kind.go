@@ -4,5 +4,5 @@ type CommonOperationKind int
 
 const (
 	IllegalOp CommonOperationKind = iota
-	Print
+	Assign
 )

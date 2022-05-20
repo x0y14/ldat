@@ -1,9 +1,8 @@
 package ldat
 
 import (
-	"fmt"
+	"ldat/interfaces"
 	"ldat/python"
-	"ldat/ruby"
 	"strings"
 )
 
@@ -12,27 +11,44 @@ type LDat struct {
 	libFiles []string
 }
 
-func NewLDat(m string, l []string) *LDat {
+func NewLDat(mainFilePath string, libFilePaths []string) *LDat {
 	return &LDat{
-		mainFile: m,
-		libFiles: l,
+		mainFile: mainFilePath,
+		libFiles: libFilePaths,
 	}
 }
 
-func (ld *LDat) Load() error {
-	if strings.HasSuffix(ld.mainFile, ".py") {
-		result, err := python.AstDump(ld.mainFile)
-		if err != nil {
-			return err
+// DumpAsts []string[0] main AST, []string[1:] lib ASTs
+func (ld *LDat) DumpAsts() ([]string, error) {
+	queue := []string{ld.mainFile}
+	queue = append(queue, ld.libFiles...)
+
+	var asts []string
+
+	var psr interfaces.IParser
+
+	for _, file := range queue {
+		if strings.HasSuffix(file, ".py") {
+			psr = &python.PyParser{}
+			_ = psr.Parse()
+		} else if strings.HasSuffix(file, ".rb") {
+
 		}
-		fmt.Printf("%v", result)
-	} else if strings.HasSuffix(ld.mainFile, ".rb") {
-		result, err := ruby.AstDump(ld.mainFile)
-		if err != nil {
-			return err
-		}
-		fmt.Printf("%v", result)
 	}
 
-	return nil
+	//if strings.HasSuffix(ld.mainFile, ".py") {
+	//	result, err := python.AstDumpWithFilePath(ld.mainFile)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//	fmt.Printf("%v", result)
+	//} else if strings.HasSuffix(ld.mainFile, ".rb") {
+	//	result, err := ruby.AstDumpWithFilePath(ld.mainFile)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//	fmt.Printf("%v", result)
+	//}
+
+	return asts, nil
 }

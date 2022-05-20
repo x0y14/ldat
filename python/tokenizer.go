@@ -1,6 +1,9 @@
 package python
 
-import "fmt"
+import (
+	"fmt"
+	"regexp"
+)
 
 type Tokenizer struct {
 	pos   int
@@ -8,6 +11,10 @@ type Tokenizer struct {
 }
 
 /*
+
+age: int = 19
+name: str = "john"
+print("hello" + name + str(age))
 
 Module(
     body=[
@@ -28,6 +35,11 @@ Module(
     ],
     type_ignores=[]
 )
+
+^Module\([\s]+body\=\[(.*)\]\,[\s]+type_ignores\=\[(.*)\][\s]+\)$
+
+$0 body=[(.*)]
+$1 type_ignores=[(.*)]
 
 */
 
@@ -50,15 +62,44 @@ func (t *Tokenizer) goNext() {
 	t.pos++
 }
 
-func (t *Tokenizer) load(code string) {
-	t.runes = []rune(code)
+func (t *Tokenizer) load(code string) error {
+
+	reg := regexp.MustCompile(`Module\(\s*body=\[(.*)],\s*type_ignores=\[(.*)]\s*\)\s*`)
+
+	result := reg.FindStringSubmatch(code)
+	if len(result) != 3 {
+		return fmt.Errorf("ast format error")
+	}
+
+	t.runes = []rune(result[1])
+	return nil
 }
 
-func (t *Tokenizer) Tokenize(code string) {
-	t.load(code)
+func (t *Tokenizer) Tokenize(code string) (*Token, error) {
+	err := t.load(code)
+	if err != nil {
+		return nil, err
+	}
+
+	var result *Token = &Token{SOF, "", 0, 0, nil}
 
 	for !t.isEof() {
-		fmt.Printf("%v", string(t.curt()))
-		t.goNext()
+		//fmt.Printf("%v", string(t.curt()))
+		//t.goNext()
+		switch {
+		case 65 <= t.curt() && t.curt() <= 90 || 97 <= t.curt() && t.curt() <= 122:
+			// A-Z || a-z
+			t.ident()
+			//case t.curt() == '(' || t.curt() == ')':
+			//	t.goNext()
+			//case t.curt() == '[' || t.curt() == ']':
+			//	t.goNext()
+			//case t.curt() == '=':
+			//	t.goNext()
+		}
 	}
+
+	return result, nil
 }
+
+func (t *Tokenizer) ident() {}

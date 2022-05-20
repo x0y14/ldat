@@ -21,8 +21,11 @@ func main() {
 	}
 
 	ldat := ldat2.NewLDat(*mainFile, *libFiles)
-	err := ldat.Load()
+	asts, err := ldat.DumpAsts()
 	if err != nil {
 		log.Fatal(err)
+	}
+	for _, ast := range asts {
+		fmt.Printf("%v\n", ast)
 	}
 }
